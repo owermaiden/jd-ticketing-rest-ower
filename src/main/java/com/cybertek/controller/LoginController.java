@@ -1,5 +1,6 @@
 package com.cybertek.controller;
 
+import com.cybertek.annotation.DefaultExceptionMessage;
 import com.cybertek.dto.UserDTO;
 import com.cybertek.entity.ResponseWrapper;
 import com.cybertek.entity.User;
@@ -8,6 +9,8 @@ import com.cybertek.exeption.TicketingProjectExeption;
 import com.cybertek.mapper.MapperUtil;
 import com.cybertek.service.UserService;
 import com.cybertek.util.JWTUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Tag(name="Authentication Controler", description = "Authenticate API")
 public class LoginController {
 
 	private final AuthenticationManager authenticationManager;
@@ -31,6 +35,8 @@ public class LoginController {
 	}
 
 	@PostMapping("/authenticate")
+	@DefaultExceptionMessage(defaultMessage = "Bad credentials")
+	@Operation(summary = "Login to application")
 	public ResponseEntity<ResponseWrapper> doLogin(@RequestBody AuthenticationRequest authenticationRequest) throws TicketingProjectExeption {
 
 		String password = authenticationRequest.getPassword();
