@@ -11,19 +11,17 @@ import com.cybertek.util.JWTUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class LoginController {
 
-	private AuthenticationManager authenticationManager;
-	private UserService userService;
-	private MapperUtil mapperUtil;
-	private JWTUtil jwtUtil;
+	private final AuthenticationManager authenticationManager;
+	private final UserService userService;
+	private final MapperUtil mapperUtil;
+	private final JWTUtil jwtUtil;
 
 	public LoginController(AuthenticationManager authenticationManager, UserService userService, MapperUtil mapperUtil, JWTUtil jwtUtil) {
 		this.authenticationManager = authenticationManager;
@@ -33,10 +31,10 @@ public class LoginController {
 	}
 
 	@PostMapping("/authenticate")
-	public ResponseEntity<ResponseWrapper> doLogin(@RequestBody AuthenticationRequest autheticationRequest) throws TicketingProjectExeption {
+	public ResponseEntity<ResponseWrapper> doLogin(@RequestBody AuthenticationRequest authenticationRequest) throws TicketingProjectExeption {
 
-		String password = autheticationRequest.getPassword();
-		String username = autheticationRequest.getUsername();
+		String password = authenticationRequest.getPassword();
+		String username = authenticationRequest.getUsername();
 
 		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(username,password);
 		authenticationManager.authenticate(authentication);
@@ -50,7 +48,7 @@ public class LoginController {
 
 		String jwtToken = jwtUtil.generateToken(convertedUser);
 
-		return ResponseEntity.ok(new ResponseWrapper("Login Successfull", jwtToken));
+		return ResponseEntity.ok(new ResponseWrapper("Login Successful", jwtToken));
 	}
 
 }
