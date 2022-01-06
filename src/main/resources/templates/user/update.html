@@ -1,0 +1,214 @@
+<head th:replace="/fragments/head :: header"></head>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" >
+
+<body>
+<div class="dashboard-main-wrapper">
+
+    <div th:replace="/fragments/header :: header"></div>
+
+    <div th:replace="/fragments/left-sidebar :: left-sidebar"></div>
+
+    <div class="dashboard-wrapper">
+
+        <div class="dashboard-ecommerce">
+
+            <div class="container-fluid dashboard-content">
+
+                <div class="ecommerce-widget">
+
+                    <div class="row">
+
+                        <div class="col-lg-6 col-md-12">
+
+                            <section class="panel panel-transparent">
+                                <header class="panel-heading">
+                                    <h2 class="panel-title">User Update</h2>
+                                </header>
+
+                                <div class="panel-body">
+
+                                    <!-- ------------------------FORM START----------------------------- -->
+                                    <form th:object="${user}" th:action="@{/user/update/{id}(id=${user.userName})}" method="post" class="needs-validation" novalidate >
+                                        <div class="row">
+                                            <div class="col-md-6 col-sm-6">
+                                                <div class="form-group">
+                                                    <label for="firstname" class="col-form-label">First Name</label>
+                                                    <input  th:field="*{firstName}"
+                                                            id="firstname" type="text" placeholder="first name" class="form-control" required>
+                                                    <div class="invalid-feedback">
+                                                        Please enter first name.
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                            <div class="col-md-6 col-sm-6">
+                                                <div class="form-group">
+                                                    <label for="lastname" class="col-form-label">Last Name</label>
+                                                    <input th:field="*{lastName}" id="lastname" type="text" placeholder="last name" class="form-control" required>
+                                                    <div class="invalid-feedback">
+                                                        Please enter last name.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 col-sm-6">
+                                                <div class="form-group">
+                                                    <label for="emailaddress" class="col-form-label">Email address</label>
+                                                    <input th:field="*{userName}" id="emailaddress" type="email" placeholder="email address" class="form-control" required>
+                                                    <div class="invalid-feedback">
+                                                        Please enter e-mail address.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 col-sm-6">
+                                                <div class="form-group">
+                                                    <label for="phonenumber" class="col-form-label">Phone Number</label>
+                                                    <input th:field="*{phone}" id="phonenumber" type="tel" class="form-control"
+                                                           pattern="^\d{10}$" placeholder="Phone Number" required>
+                                                    <div class="invalid-feedback">
+                                                        Please enter 10 digit phone number.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 col-sm-6">
+                                                <div class="form-group">
+                                                    <label for="password" class="col-form-label">Password</label>
+                                                    <input th:field="*{passWord}"
+                                                           id="password" type="password" placeholder="Password" class="form-control"
+                                                           pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{4,}" required>
+                                                    <div class="invalid-feedback">
+                                                        Must contain at least one number and one uppercase and lowercase letter, and at least 4 or more characters"
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 col-sm-6">
+                                                <div class="form-group">
+                                                    <label for="repassword" class="col-form-label">Password Confirmation</label>
+                                                    <input th:field="*{confirmPassword}" id="repassword" type="password" placeholder="re-enter password" class="form-control"
+                                                           pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{4,}" required>
+                                                    <div class="invalid-feedback">
+                                                        Must contain at least one number and one uppercase and lowercase letter, and at least 4 or more characters"
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 col-sm-6">
+                                                <div>
+                                                    <label>Gender</label><br>
+                                                    <label class="custom-control custom-radio custom-control-inline">
+                                                        <input type="radio" name="radio-inline" checked=""
+                                                               class="custom-control-input"
+                                                               th:field="*{gender}" th:value="MALE"
+                                                        ><span class="custom-control-label">Male</span>
+                                                    </label>
+                                                    <label class="custom-control custom-radio custom-control-inline">
+                                                        <input type="radio" name="radio-inline"
+                                                               class="custom-control-input"
+                                                               th:field="*{gender}" th:value="FEMALE"
+                                                        ><span class="custom-control-label">Female</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 col-sm-6">
+                                                <div class="form-group">
+                                                    <label >Choose a Role</label>
+                                                    <!-- th:field and th:select doesnt work at the same time,  -->
+                                                    <select name="role" class="custom-select" aria-label="Default select example" required="required">
+                                                        <!-- <option th:value=" ''" th:text="Select"></option>    Bu bölümü sildik....-->
+                                                         <option th:each="r : ${roles}"
+                                                                 th:value="${r.id}"
+                                                                 th:text="${r.description}"
+                                                                 th:selected="(${r.id} == *{role.id})"
+                                                         ></option>
+                                                     </select>
+                                                 </div>
+                                             </div>
+                                         </div>
+                                         <div class="row float-right">
+                                             <div class="col-sm-6 col-md-12 col-lg-12" >
+                                                 <button type="submit" class="btn btn-success">Save</button>
+                                             </div>
+                                         </div>
+                                         <div class="row">
+
+                                         </div>
+                                     </form>
+                                     <!-- ------------------------FORM END----------------------------- -->
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ------------------------TABLE START----------------------------- -->
+
+                <div class="row">
+                    <div class="col-lg-12 col-md-12">
+                        <div class="col-md-12">
+                            <section class="panel">
+                                <header class="panel-heading">
+                                    <h2 class="panel-title">User List</h2>
+                                </header>
+                                <div class="panel-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">Name</th>
+                                                <th scope="col">Email(username)</th>
+                                                <th scope="col">Gender</th>
+                                                <th scope="col">Phone</th>
+                                                <th scope="col">Role</th>
+                                                <th scope="col">Action</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr th:each="user : ${users}">
+                                                <td th:text="${user.firstName + ' ' + user.lastName}"></td>
+                                                <td th:text="${user.userName}">owermaiden@gmail.com</td>
+                                                <td th:text="${user.gender.value}">Male</td>
+                                                <td th:text="${user.phone}">4345556677</td>
+                                                <td th:text="${user.role.description}">Admin</td>
+                                                <td class="action">
+                                                    <a class="btn btn-warning" th:href="@{/user/update/{id}(id=${user.userName})}" role="button">Update</a>
+                                                    <a class="btn btn-danger" th:href="@{/user/delete/{id}(id=${user.userName})}" role="button">Delete</a>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ------------------------TABLE END----------------------------- -->
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div th:replace="/fragments/footer :: footer"></div>
+
+</div>
+
+<div th:replace="/fragments/javascript :: js"></div>
+
+<!-- Optional JavaScript; choose one of the two! -->
+
+<!-- Option 1: Bootstrap Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+
+<!-- Option 2: Separate Popper and Bootstrap JS -->
+<!--
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous"></script>
+-->
+</body>
+</html>
