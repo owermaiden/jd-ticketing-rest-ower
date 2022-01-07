@@ -19,4 +19,6 @@ public interface UserService {
 
     boolean checkIfUserCanBeDeleted(User user);
 
+    UserDTO confirm(User user);
+
 }

@@ -34,7 +34,7 @@ public class UserController {
 
     @PostMapping("create")
     // public String saveUser(@ModelAttribute("user") UserDTO user, Model model){   // we dont need to use @ModelAttribute anymore......
-    public String saveUser(UserDTO user){
+    public String saveUser(UserDTO user) throws TicketingProjectExeption {
         userService.save(user);
         return "redirect:/user/create";  // redirect calls the GetMapping instead of view...
     }
