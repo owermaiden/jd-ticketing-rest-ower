@@ -1,3 +1,5 @@
+app:
+  local-url: http://localhost:${server.port}
 server:
   port: 8080
 spring:

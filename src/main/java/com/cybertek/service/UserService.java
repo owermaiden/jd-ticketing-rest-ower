@@ -10,7 +10,7 @@ public interface UserService {
 
     List<UserDTO> listAllUsers();
     UserDTO findByUserName(String username);
-    void save(UserDTO dto);
+    UserDTO save(UserDTO dto) throws TicketingProjectExeption;
     UserDTO update(UserDTO dto);
     void delete(String username) throws TicketingProjectExeption;
     List<UserDTO> listAllByRole(String role);
