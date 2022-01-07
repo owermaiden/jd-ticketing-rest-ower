@@ -14,15 +14,13 @@ import com.cybertek.service.UserService;
 import com.cybertek.util.JWTUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @Tag(name="Authentication Controler", description = "Authenticate API")
@@ -79,7 +77,7 @@ public class LoginController {
 
 
 	@DefaultExceptionMessage(defaultMessage = "Failed to confirm email, please try again!")
-	@PostMapping("/confirmation")
+	@GetMapping("/confirmation")
 	@Operation(summary = "Confirm account")
 	public ResponseEntity<ResponseWrapper> confirmEmail(@RequestParam("token") String token) throws TicketingProjectExeption {
 
@@ -100,12 +98,13 @@ public class LoginController {
 
 		return MailDTO.builder()
 				.emailTo(user.getUserName())
-				.token(confirmationToken.getToken())
+				.token(createdConfirmationToken.getToken())
 				.subject("confirm registration")
-				.message("to confirm your account, please click here")
+				.message("to confirm your account, please click here:")
 				.url(BASE_URL + "/confirmation?token=")
 				.build();
 	}
+
 
 	private void sendEmail(MailDTO mailDTO){
 
