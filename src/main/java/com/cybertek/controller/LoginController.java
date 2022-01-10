@@ -1,7 +1,6 @@
 package com.cybertek.controller;
 
 import com.cybertek.annotation.DefaultExceptionMessage;
-import com.cybertek.dto.MailDTO;
 import com.cybertek.dto.UserDTO;
 import com.cybertek.entity.ConfirmationToken;
 import com.cybertek.entity.ResponseWrapper;
@@ -14,10 +13,7 @@ import com.cybertek.service.UserService;
 import com.cybertek.util.JWTUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
@@ -26,8 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name="Authentication Controler", description = "Authenticate API")
 public class LoginController {
 
-	@Value("${app.local-url}")
-	private String BASE_URL;
+
 
 	private final AuthenticationManager authenticationManager;
 	private final UserService userService;
@@ -65,15 +60,7 @@ public class LoginController {
 		return ResponseEntity.ok(new ResponseWrapper("Login Successful", jwtToken));
 	}
 
-	@DefaultExceptionMessage(defaultMessage = "Something went wrong")
-	@PostMapping("/create-user")
-	@Operation(summary = "Create new account")
-	private ResponseEntity<ResponseWrapper> doRegister(@RequestBody UserDTO userDTO) throws TicketingProjectExeption {
 
-		UserDTO createdUser = userService.save(userDTO);
-		sendEmail(createEmail(createdUser));
-		return ResponseEntity.ok(new ResponseWrapper("User has been created", createdUser));
-	}
 
 
 	@DefaultExceptionMessage(defaultMessage = "Failed to confirm email, please try again!")
@@ -89,31 +76,6 @@ public class LoginController {
 
 	}
 
-	private MailDTO createEmail(UserDTO userDTO){
-		User user = mapperUtil.convert(userDTO,new User());
 
-		ConfirmationToken confirmationToken = new ConfirmationToken(user);
-		confirmationToken.setIsDeleted(false);
-		ConfirmationToken createdConfirmationToken = confirmationTokenService.save(confirmationToken);
-
-		return MailDTO.builder()
-				.emailTo(user.getUserName())
-				.token(createdConfirmationToken.getToken())
-				.subject("confirm registration")
-				.message("to confirm your account, please click here:")
-				.url(BASE_URL + "/confirmation?token=")
-				.build();
-	}
-
-
-	private void sendEmail(MailDTO mailDTO){
-
-		SimpleMailMessage mailMessage = new SimpleMailMessage();
-		mailMessage.setTo(mailDTO.getEmailTo());
-		mailMessage.setSubject(mailDTO.getSubject());
-		mailMessage.setText(mailDTO.getMessage() + mailDTO.getUrl() + mailDTO.getToken());
-
-		confirmationTokenService.sendEmail(mailMessage);
-	}
 
 }

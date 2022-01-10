@@ -1,69 +1,131 @@
 package com.cybertek.controller;
 
+import com.cybertek.annotation.DefaultExceptionMessage;
+import com.cybertek.dto.MailDTO;
 import com.cybertek.dto.UserDTO;
+import com.cybertek.entity.ConfirmationToken;
+import com.cybertek.entity.ResponseWrapper;
+import com.cybertek.entity.User;
 import com.cybertek.exeption.TicketingProjectExeption;
+import com.cybertek.mapper.MapperUtil;
+import com.cybertek.service.ConfirmationTokenService;
 import com.cybertek.service.RoleService;
 import com.cybertek.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-@Controller
-@RequestMapping("/user")
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/v1/user")
+@Tag(name="User Controller", description = "User API")
 public class UserController {
 
-    RoleService roleService;
-    UserService userService;
+    @Value("${app.local-url}")
+    private String BASE_URL;
 
-    @Autowired
-    public UserController(RoleService roleService, UserService userService) {
-        this.roleService = roleService;
+    private final UserService userService;
+    private final MapperUtil mapperUtil;
+    private final RoleService roleService;
+    private final ConfirmationTokenService confirmationTokenService;
+
+    public UserController(UserService userService, MapperUtil mapperUtil, RoleService roleService, ConfirmationTokenService confirmationTokenService) {
         this.userService = userService;
+        this.mapperUtil = mapperUtil;
+        this.roleService = roleService;
+        this.confirmationTokenService = confirmationTokenService;
     }
 
-    @GetMapping({"/create", "/add" , "/initialize"})
-    public String createUser(Model model){
-
-        model.addAttribute("user", new UserDTO());
-        model.addAttribute("roles", roleService.listAllRoles());
-        model.addAttribute("users", userService.listAllUsers());
-
-        return "/user/create";
+    @DefaultExceptionMessage(defaultMessage = "Something went wrong")
+    @PostMapping("/create-user")
+    @Operation(summary = "Create new account")
+    @PreAuthorize("hasAuthority('Admin')")
+    public ResponseEntity<ResponseWrapper> doRegister(@RequestBody UserDTO userDTO) throws TicketingProjectExeption {
+        UserDTO createdUser = userService.save(userDTO);
+        sendEmail(createEmail(createdUser));
+        return ResponseEntity.ok(new ResponseWrapper("User has been created", createdUser));
     }
 
-    @PostMapping("create")
-    // public String saveUser(@ModelAttribute("user") UserDTO user, Model model){   // we dont need to use @ModelAttribute anymore......
-    public String saveUser(UserDTO user) throws TicketingProjectExeption {
-        userService.save(user);
-        return "redirect:/user/create";  // redirect calls the GetMapping instead of view...
+    @GetMapping
+    @DefaultExceptionMessage(defaultMessage = "Something went wrong")
+    @Operation(summary = "Read All Users")
+    @PreAuthorize("hasAuthority('Admin')")
+    public ResponseEntity<ResponseWrapper> readAll(){
+        List<UserDTO> userDTOS = userService.listAllUsers();
+        return ResponseEntity.ok(new ResponseWrapper("Successfully retrieved users", userDTOS));
     }
 
-    @GetMapping("/update/{username}")
-    public String editUser(@PathVariable("username") String username, Model model){
-
-        model.addAttribute("user", userService.findByUserName(username));
-        model.addAttribute("users", userService.listAllUsers());
-        model.addAttribute("roles", roleService.listAllRoles());
-
-        return "/user/update";
-
+    @GetMapping("/{username}")
+    @DefaultExceptionMessage(defaultMessage = "Something went wrong")
+    @Operation(summary = "Read User")
+    // Only Admin should see other profiles or current user can see his/her profile
+    public ResponseEntity<ResponseWrapper> readByUsername(@PathVariable("username") String username){
+        UserDTO user = userService.findByUserName(username);
+        return ResponseEntity.ok(new ResponseWrapper("Successfully retrieved user",user));
     }
 
-    @PostMapping("/update/{username}")
-    public String updateUser(@PathVariable("username") String username,UserDTO user, Model model){
-
-        userService.update(user);
-        return "redirect:/user/create";  // redirect calls the GetMapping instead of view...
+    @PutMapping
+    @DefaultExceptionMessage(defaultMessage = "Something went wrong, try again!")
+    @Operation(summary = "Update User")
+    public ResponseEntity<ResponseWrapper> updateUser(@RequestBody UserDTO user) throws TicketingProjectExeption, AccessDeniedException {
+        UserDTO updatedUser = userService.update(user);
+        return ResponseEntity.ok(new ResponseWrapper("Successfully updated",updatedUser));
     }
 
-    @GetMapping("/delete/{username}")
-    public String deleteUserById(@PathVariable("username") String username, Model model) throws TicketingProjectExeption {
-
+    @DeleteMapping("/{username}")
+    @DefaultExceptionMessage(defaultMessage = "Something went wrong, try again!")
+    @Operation(summary = "Delete User")
+    @PreAuthorize("hasAuthority('Admin')")
+    public ResponseEntity<ResponseWrapper> deleteUser(@PathVariable("username") String username) throws TicketingProjectExeption {
         userService.delete(username);
-        return "redirect:/user/create";  // redirect calls the GetMapping instead of view...
-
+        return ResponseEntity.ok(new ResponseWrapper("Successfully deleted"));
     }
+
+    @GetMapping("/role")
+    @DefaultExceptionMessage(defaultMessage = "Something went wrong, try again!")
+    @Operation(summary = "Read by role")
+    @PreAuthorize("hasAnyAuthority('Admin','Manager')")
+    public ResponseEntity<ResponseWrapper> readByRole(@RequestParam String role){
+        List<UserDTO> userList = userService.listAllByRole(role);
+        return ResponseEntity.ok(new ResponseWrapper("Successfully read users by role",userList));
+    }
+
+    // -----------------------helper methods--------------------------------------------------------------------------------------------
+
+    private MailDTO createEmail(UserDTO userDTO){
+        User user = mapperUtil.convert(userDTO,new User());
+
+        ConfirmationToken confirmationToken = new ConfirmationToken(user);
+        confirmationToken.setIsDeleted(false);
+        ConfirmationToken createdConfirmationToken = confirmationTokenService.save(confirmationToken);
+
+        return MailDTO.builder()
+                .emailTo(user.getUserName())
+                .token(createdConfirmationToken.getToken())
+                .subject("confirm registration")
+                .message("to confirm your account, please click here:")
+                .url(BASE_URL + "/confirmation?token=")
+                .build();
+    }
+
+
+    private void sendEmail(MailDTO mailDTO){
+
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setTo(mailDTO.getEmailTo());
+        mailMessage.setSubject(mailDTO.getSubject());
+        mailMessage.setText(mailDTO.getMessage() + mailDTO.getUrl() + mailDTO.getToken());
+
+        confirmationTokenService.sendEmail(mailMessage);
+    }
+
+
 
 
 

@@ -1,16 +1,17 @@
 package com.cybertek.implementation;
 
 import com.cybertek.dto.ProjectDTO;
-import com.cybertek.dto.UserDTO;
 import com.cybertek.entity.Project;
 import com.cybertek.entity.User;
 import com.cybertek.enums.Status;
-import com.cybertek.mapper.ProjectMapper;
-import com.cybertek.mapper.UserMapper;
+import com.cybertek.exeption.TicketingProjectExeption;
+import com.cybertek.mapper.MapperUtil;
 import com.cybertek.repository.ProjectRepository;
+import com.cybertek.repository.UserRepository;
 import com.cybertek.service.ProjectService;
 import com.cybertek.service.TaskService;
 import com.cybertek.service.UserService;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -20,103 +21,125 @@ import java.util.stream.Collectors;
 @Service
 public class ProjectServiceImpl implements ProjectService {
 
+    private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
-    private final ProjectMapper projectMapper;
     private final UserService userService;
-    private final UserMapper userMapper;
     private final TaskService taskService;
+    private final MapperUtil mapperUtil;
 
-    public ProjectServiceImpl(ProjectRepository projectRepository, ProjectMapper projectMapper, UserService userService, UserMapper userMapper1, TaskService taskService) {
+    public ProjectServiceImpl(UserRepository userRepository, ProjectRepository projectRepository, UserService userService, TaskService taskService, MapperUtil mapperUtil) {
+        this.userRepository = userRepository;
         this.projectRepository = projectRepository;
-        this.projectMapper = projectMapper;
         this.userService = userService;
-        this.userMapper = userMapper1;
         this.taskService = taskService;
+        this.mapperUtil = mapperUtil;
     }
 
     @Override
-    public ProjectDTO getByProjectCode(String projectCode) {
-        Project project = projectRepository.findByProjectCode(projectCode);
-        return projectMapper.convertToDto(project);
+    public ProjectDTO getByProjectCode(String code) {
+        Project project = projectRepository.findByProjectCode(code);
+        return mapperUtil.convert(project,new ProjectDTO());
     }
 
     @Override
     public List<ProjectDTO> listAllProjects() {
-        List<Project> projects = projectRepository.findAll();
-        return projects.stream().map(projectMapper::convertToDto).collect(Collectors.toList());
+        List<Project> list = projectRepository.findAll(Sort.by("projectCode"));
+        return list.stream().map(obj -> mapperUtil.convert(obj,new ProjectDTO())).collect(Collectors.toList());
     }
 
     @Override
-    public void save(ProjectDTO dto) {
-        dto.setProjectStatus(Status.OPEN);
-        Project project = projectMapper.convertToEntity(dto);
-        // project.setAssignedManager(userMapper.convertToEntity(dto.getAssignedManager()));   mapper convert this also we dont need this line actually
-        projectRepository.save(project);
+    public ProjectDTO save(ProjectDTO dto) throws TicketingProjectExeption {
+
+        Project foundProject = projectRepository.findByProjectCode(dto.getProjectCode());
+
+        if(foundProject != null){
+            throw new TicketingProjectExeption("Project with this code already existing");
+        }
+
+        Project obj = mapperUtil.convert(dto,new Project());
+        Project createdProject = projectRepository.save(obj);
+        return mapperUtil.convert(createdProject,new ProjectDTO());
+
     }
 
     @Override
-    public ProjectDTO update(ProjectDTO dto) {
-        //Find current project from database
-        Project project = projectRepository.findByProjectCode(dto.getProjectCode());  // project from database
-        // Map update project dto to entity object
-        Project convertedProject = projectMapper.convertToEntity(dto);                // project updated by smbdy
-        //set id to the converted object
-        convertedProject.setId(project.getId());                                      // get id from old version to updated one
-        // update the status again...
-        convertedProject.setProjectStatus(project.getProjectStatus());                // get Status from old version to updated one
-        //save updated project
-        projectRepository.save(convertedProject);                                     // save new version to database
+    public ProjectDTO update(ProjectDTO dto) throws TicketingProjectExeption {
 
-        return getByProjectCode(dto.getProjectCode());
+        Project project = projectRepository.findByProjectCode(dto.getProjectCode());
+
+        if(project == null){
+            throw new TicketingProjectExeption("Project does not exist");
+        }
+
+        Project convertedProject = mapperUtil.convert(dto,new Project());
+        Project updatedProject = projectRepository.save(convertedProject);
+        return mapperUtil.convert(updatedProject,new ProjectDTO());
+
     }
 
     @Override
-    public void delete(String code) {
+    public void delete(String code) throws TicketingProjectExeption {
+
         Project project = projectRepository.findByProjectCode(code);
+
+        if(project == null){
+            throw new TicketingProjectExeption("Project does not exist");
+        }
+
         project.setIsDeleted(true);
-
-        project.setProjectCode(project.getProjectCode()+"-"+project.getId());  // we gave deleted project a different code....So you can again use this code to create this project again...
+        project.setProjectCode(project.getProjectCode() +  "-" + project.getId());
         projectRepository.save(project);
-
-        taskService.deleteByProject(projectMapper.convertToDto(project));     //
+        taskService.deleteByProject(mapperUtil.convert(project,new ProjectDTO()));
     }
 
     @Override
-    public void complete(String projectCode) {
+    public ProjectDTO complete(String projectCode) throws TicketingProjectExeption {
+
         Project project = projectRepository.findByProjectCode(projectCode);
+
+        if(project == null){
+            throw new TicketingProjectExeption("Project does not exist");
+        }
+
         project.setProjectStatus(Status.COMPLETE);
-        projectRepository.save(project);
+        Project completedProject = projectRepository.save(project);
+        return mapperUtil.convert(completedProject,new ProjectDTO());
     }
 
     @Override
-    public List<ProjectDTO> getProjectsByAssignedManager() {
+    public List<ProjectDTO> listAllProjectDetails() throws TicketingProjectExeption {
 
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        UserDTO currentUserDTO = userService.findByUserName(username);
-        User user = userMapper.convertToEntity(currentUserDTO);
+        String id = SecurityContextHolder.getContext().getAuthentication().getName();
+        Long currentId = Long.parseLong(id);
+        User user = userRepository.findById(currentId).orElseThrow(() -> new TicketingProjectExeption("This manager does not exists"));
         List<Project> list = projectRepository.findAllByAssignedManager(user);
 
+        if(list.size() == 0 ){
+            throw new TicketingProjectExeption("This manager does not have any project assigned");
+        }
+
         return list.stream().map(project -> {
-            ProjectDTO obj = projectMapper.convertToDto(project);
+            ProjectDTO obj = mapperUtil.convert(project,new ProjectDTO());
             obj.setUnfinishedTaskCounts(taskService.totalNonCompletedTasks(project.getProjectCode()));
             obj.setCompleteTaskCounts(taskService.totalCompletedTasks(project.getProjectCode()));
             return obj;
         }).collect(Collectors.toList());
     }
 
+
     @Override
     public List<ProjectDTO> readAllByAssignedManager(User user) {
-        List<Project> projects = projectRepository.findAllByAssignedManager(user);
-        return projects.stream().map(projectMapper::convertToDto).collect(Collectors.toList());
+        List<Project> list = projectRepository.findAllByAssignedManager(user);
+        return list.stream().map(obj ->mapperUtil.convert(obj,new ProjectDTO())).collect(Collectors.toList());
     }
 
     @Override
     public List<ProjectDTO> listAllNonCompletedProjects() {
+
         return projectRepository.findAllByProjectStatusIsNot(Status.COMPLETE)
                 .stream()
-                .map(projectMapper::convertToDto)
+                .map(project -> mapperUtil.convert(project,new ProjectDTO()))
                 .collect(Collectors.toList());
     }
-
 }
+

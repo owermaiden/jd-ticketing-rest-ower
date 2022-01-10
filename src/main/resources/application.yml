@@ -35,8 +35,8 @@ spring:
           auth: true
           connectiontimeout: 5000
           writetimeout: 5000
-      username: cydeo2525@gmail.com
-      password: System11*
+    username: cydeo2525@gmail.com
+    password: System11*
 security:
   jwt:
     secret-key: cybertek

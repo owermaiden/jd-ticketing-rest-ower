@@ -1,22 +1,25 @@
 package com.cybertek.service;
 
 import com.cybertek.dto.ProjectDTO;
-import com.cybertek.dto.UserDTO;
-import com.cybertek.entity.Project;
 import com.cybertek.entity.User;
-import org.springframework.stereotype.Service;
+import com.cybertek.exeption.TicketingProjectExeption;
 
 import java.util.List;
 
 public interface ProjectService {
 
-    ProjectDTO getByProjectCode(String projectCode);
+    ProjectDTO getByProjectCode(String code);
     List<ProjectDTO> listAllProjects();
-    void save(ProjectDTO dto);
-    ProjectDTO update(ProjectDTO dto);
-    void delete(String code);
-    void complete(String projectCode);
-    List<ProjectDTO> getProjectsByAssignedManager();
+
+    ProjectDTO save(ProjectDTO dto) throws TicketingProjectExeption;
+
+    ProjectDTO update(ProjectDTO dto) throws TicketingProjectExeption;
+
+    void delete(String code) throws TicketingProjectExeption;
+
+    ProjectDTO complete(String projectCode) throws TicketingProjectExeption;
+
+    List<ProjectDTO> listAllProjectDetails() throws TicketingProjectExeption;
 
     List<ProjectDTO> readAllByAssignedManager(User user);
 
