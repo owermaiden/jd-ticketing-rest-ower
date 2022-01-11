@@ -18,7 +18,7 @@ import java.util.List;
 @Tag(name = "Task Controller",description = "Task API")
 public class TaskController {
 
-    private TaskService taskService;
+    private final TaskService taskService;
 
     public TaskController(TaskService taskService) {
         this.taskService = taskService;

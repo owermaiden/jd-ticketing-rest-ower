@@ -7,7 +7,7 @@ import com.cybertek.entity.ConfirmationToken;
 import com.cybertek.entity.ResponseWrapper;
 import com.cybertek.entity.User;
 import com.cybertek.exeption.TicketingProjectExeption;
-import com.cybertek.mapper.MapperUtil;
+import com.cybertek.util.MapperUtil;
 import com.cybertek.service.ConfirmationTokenService;
 import com.cybertek.service.RoleService;
 import com.cybertek.service.UserService;
@@ -15,8 +15,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import java.nio.file.AccessDeniedException;
 import org.springframework.mail.SimpleMailMessage;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -65,7 +65,7 @@ public class UserController {
     @DefaultExceptionMessage(defaultMessage = "Something went wrong")
     @Operation(summary = "Read User")
     // Only Admin should see other profiles or current user can see his/her profile
-    public ResponseEntity<ResponseWrapper> readByUsername(@PathVariable("username") String username){
+    public ResponseEntity<ResponseWrapper> readByUsername(@PathVariable("username") String username) throws AccessDeniedException {
         UserDTO user = userService.findByUserName(username);
         return ResponseEntity.ok(new ResponseWrapper("Successfully retrieved user",user));
     }
@@ -73,7 +73,7 @@ public class UserController {
     @PutMapping
     @DefaultExceptionMessage(defaultMessage = "Something went wrong, try again!")
     @Operation(summary = "Update User")
-    public ResponseEntity<ResponseWrapper> updateUser(@RequestBody UserDTO user) throws TicketingProjectExeption, AccessDeniedException {
+    public ResponseEntity<ResponseWrapper> updateUser(@RequestBody UserDTO user) throws TicketingProjectExeption, AccessDeniedException{
         UserDTO updatedUser = userService.update(user);
         return ResponseEntity.ok(new ResponseWrapper("Successfully updated",updatedUser));
     }
