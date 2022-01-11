@@ -7,7 +7,7 @@ import com.cybertek.entity.Task;
 import com.cybertek.entity.User;
 import com.cybertek.enums.Status;
 import com.cybertek.exeption.TicketingProjectExeption;
-import com.cybertek.mapper.MapperUtil;
+import com.cybertek.util.MapperUtil;
 import com.cybertek.repository.TaskRepository;
 import com.cybertek.repository.UserRepository;
 import com.cybertek.service.TaskService;
@@ -101,7 +101,8 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public List<TaskDTO> listAllTasksByStatusIsNot(Status status) throws TicketingProjectExeption{
-        String id= SecurityContextHolder.getContext().getAuthentication().getName();
+        // security context holder saves user by id in that situation...in MVC we have made it username...
+        String id  = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findById(Long.parseLong(id)).orElseThrow(() -> new TicketingProjectExeption("User does not exists"));
         List<Task> list= taskRepository.findAllByTaskStatusIsNotAndAssignedEmployee(status,user);
         return list.stream().map(obj -> mapperUtil.convert(obj,new TaskDTO())).collect(Collectors.toList());
@@ -109,10 +110,11 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public List<TaskDTO> listAllTasksByProjectManager() throws TicketingProjectExeption {
+        // Do you remember we were harcoded this manager in MVC, and after security we are handling this authorized manager from spring security...
         String id = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findById(Long.parseLong(id)).orElseThrow(() -> new TicketingProjectExeption("This user does not exist"));
         List<Task> tasks = taskRepository.findAllByProjectAssignedManager(user);
-        return tasks.stream().map(obj ->mapperUtil.convert(obj,new TaskDTO())).collect(Collectors.toList());
+        return tasks.stream().map(obj -> mapperUtil.convert(obj,new TaskDTO())).collect(Collectors.toList());
     }
 
     @Override

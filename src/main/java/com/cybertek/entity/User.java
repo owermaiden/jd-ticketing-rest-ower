@@ -28,7 +28,7 @@ public class User extends BaseEntity{
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String passWord;
-    private boolean enabled;
+    private Boolean enabled; // wrapper format kullanmazsak getter çalışmıyor...
     private String phone;
 
     @Enumerated(EnumType.STRING)

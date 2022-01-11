@@ -2,17 +2,17 @@ package com.cybertek.implementation;
 
 import com.cybertek.dto.UserDTO;
 import com.cybertek.entity.User;
-import com.cybertek.entity.common.UserPrincipal;
-import com.cybertek.mapper.MapperUtil;
-import com.cybertek.repository.UserRepository;
+import com.cybertek.util.MapperUtil;
 import com.cybertek.service.SecurityService;
 import com.cybertek.service.UserService;
+import lombok.SneakyThrows;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -29,6 +29,7 @@ public class SecurityServiceImpl implements SecurityService {
         this.mapperUtil = mapperUtil;
     }
 
+    @SneakyThrows
     @Override
     public UserDetails loadUserByUsername(String s) throws UsernameNotFoundException {
         UserDTO user = userService.findByUserName(s);
@@ -41,7 +42,7 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public User loadUser(String param) {
+    public User loadUser(String param) throws AccessDeniedException {
         UserDTO user = userService.findByUserName(param);
         return mapperUtil.convert(user,new User());
     }

@@ -1,6 +1,5 @@
 package com.cybertek.entity;
 
-import com.cybertek.entity.common.UserPrincipal;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
