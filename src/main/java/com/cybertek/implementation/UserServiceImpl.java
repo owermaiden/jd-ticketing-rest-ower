@@ -158,12 +158,13 @@ public class UserServiceImpl implements UserService {
 
     private void checkForAuthorities(User user) throws AccessDeniedException {
 
+        // get from spring security who is logged in...
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
+        // if somebody authenticated, he/she has a role...
         if(authentication!=null && !authentication.getName().equals("anonymousUser")){
 
             Set<String> roles = AuthorityUtils.authorityListToSet(authentication.getAuthorities());
-
+            // everybody can reach their own role...Or admin cen reach
             if(!(authentication.getName().equals(user.getId().toString()) || roles.contains("Admin"))){
                 throw new AccessDeniedException("Access is denied");
             }
