@@ -1,6 +1,7 @@
 package com.cybertek.controller;
 
 import com.cybertek.annotation.DefaultExceptionMessage;
+import com.cybertek.annotation.ExecutionTime;
 import com.cybertek.dto.UserDTO;
 import com.cybertek.entity.ConfirmationToken;
 import com.cybertek.entity.ResponseWrapper;
@@ -43,6 +44,7 @@ public class LoginController {
 	@PostMapping("/authenticate")
 	@DefaultExceptionMessage(defaultMessage = "Bad credentials")
 	@Operation(summary = "Login to application")
+	@ExecutionTime
 	public ResponseEntity<ResponseWrapper> doLogin(@RequestBody AuthenticationRequest authenticationRequest) throws TicketingProjectExeption, AccessDeniedException {
 
 		String password = authenticationRequest.getPassword();

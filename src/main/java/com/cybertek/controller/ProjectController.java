@@ -1,6 +1,7 @@
 package com.cybertek.controller;
 
 import com.cybertek.annotation.DefaultExceptionMessage;
+import com.cybertek.annotation.ExecutionTime;
 import com.cybertek.dto.ProjectDTO;
 import com.cybertek.entity.ResponseWrapper;
 import com.cybertek.exeption.TicketingProjectExeption;
@@ -32,6 +33,7 @@ public class ProjectController {
     @Operation(summary = "Read all projects")
     @DefaultExceptionMessage(defaultMessage = "Something went wrong, try again!")
     @PreAuthorize("hasAnyAuthority('Admin','Manager')")
+    @ExecutionTime
     public ResponseEntity<ResponseWrapper> readAll(){
         List<ProjectDTO> projectDTOS = projectService.listAllProjects();
         return ResponseEntity.ok(new ResponseWrapper("Project are retrieved",projectDTOS));
@@ -41,6 +43,7 @@ public class ProjectController {
     @Operation(summary = "Read by project code")
     @DefaultExceptionMessage(defaultMessage = "Something went wrong, try again!")
     @PreAuthorize("hasAnyAuthority('Admin','Manager')")
+    @ExecutionTime
     public ResponseEntity<ResponseWrapper> readByProjectCode(@PathVariable("projectcode") String projectcode){
         ProjectDTO projectDTO = projectService.getByProjectCode(projectcode);
         return ResponseEntity.ok(new ResponseWrapper("Project is retrieved",projectDTO));
@@ -50,6 +53,7 @@ public class ProjectController {
     @Operation(summary = "Create project")
     @DefaultExceptionMessage(defaultMessage = "Something went wrong, try again!")
     @PreAuthorize("hasAnyAuthority('Admin','Manager')")
+    @ExecutionTime
     public ResponseEntity<ResponseWrapper> create(@RequestBody ProjectDTO projectDTO) throws TicketingProjectExeption {
         ProjectDTO createdProject = projectService.save(projectDTO);
         return ResponseEntity.ok(new ResponseWrapper("Project is retrieved",createdProject));
