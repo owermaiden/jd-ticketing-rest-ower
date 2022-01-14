@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.nio.file.AccessDeniedException;
 
 @RestController
-@Tag(name="Authentication Controler", description = "Authenticate API")
+@Tag(name="Authentication Controller", description = "Authenticate API")
 public class LoginController {
 
 
@@ -44,7 +44,6 @@ public class LoginController {
 	@PostMapping("/authenticate")
 	@DefaultExceptionMessage(defaultMessage = "Bad credentials")
 	@Operation(summary = "Login to application")
-	@ExecutionTime
 	public ResponseEntity<ResponseWrapper> doLogin(@RequestBody AuthenticationRequest authenticationRequest) throws TicketingProjectExeption, AccessDeniedException {
 
 		String password = authenticationRequest.getPassword();
