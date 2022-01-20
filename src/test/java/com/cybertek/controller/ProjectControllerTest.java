@@ -31,7 +31,7 @@ class ProjectControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    private final String token = "eyJhbGciOiJIUzI1NiJ9.eyJmaXJzdE5hbWUiOiJhZG1pbiIsImxhc3ROYW1lIjoiYWRtaW4iLCJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpZCI6MSwiZXhwIjoxNjQyNjIzNTQ0LCJpYXQiOjE2NDI1ODc1NDQsInVzZXJuYW1lIjoiYWRtaW5AYWRtaW4uY29tIn0.xYbDOb4pCUOP4XBOdZOXg4j2iwpPH4ok5pHvdx1qrd0";
+    private final String token = "eyJhbGciOiJIUzI1NiJ9.eyJmaXJzdE5hbWUiOiJhZG1pbiIsImxhc3ROYW1lIjoiYWRtaW4iLCJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpZCI6MSwiZXhwIjoxNjQyNzA0MjY5LCJpYXQiOjE2NDI2NjgyNjksInVzZXJuYW1lIjoiYWRtaW5AYWRtaW4uY29tIn0.Km5G4cyXEx-GrVfcvAY1hrBoK8UxDgTDx-mGKtYuQu4";
 
     static UserDTO userDTO;
     static ProjectDTO projectDTO;
@@ -52,7 +52,7 @@ class ProjectControllerTest {
 
         projectDTO = ProjectDTO.builder()
                 .projectCode("Api1")
-                .projectName("Api-ozzy")
+                .projectName("Api-ozzy1")
                 .assignedManager(userDTO)
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(5))
@@ -99,7 +99,7 @@ class ProjectControllerTest {
     @Test
     public void givenToken_updateProject() throws Exception {
 
-        projectDTO.setId(2L); // we are updating the project which id=2..
+        projectDTO.setId(6L); // we are updating the project which id=6..It must be same with projectDTO in Line 54...
 
         mockMvc.perform(MockMvcRequestBuilders
                         .put("/api/v1/project")
